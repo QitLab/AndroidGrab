@@ -5,4 +5,3 @@ include ':contact'
 include ':india'
 include ':applist'
 include ':app'
-rootProject.name = "AndroidGrab"
