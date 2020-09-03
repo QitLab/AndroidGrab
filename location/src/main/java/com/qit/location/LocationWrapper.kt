@@ -3,7 +3,7 @@ package com.qit.location
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.*
-import android.os.Handler
+import android.os.CountDownTimer
 import android.os.Looper
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -13,6 +13,7 @@ import com.qit.base.LocationType
 import java.io.IOException
 import java.util.*
 
+
 @SuppressLint("MissingPermission")
 class LocationWrapper private constructor(private val context: Context,
                                           private val listener: OnLocationSuccessListener) :
@@ -20,6 +21,7 @@ class LocationWrapper private constructor(private val context: Context,
     interface OnLocationSuccessListener {
         fun onSuccess(location: GrabLocation)
     }
+
 
     companion object {
         @Volatile
@@ -30,15 +32,12 @@ class LocationWrapper private constructor(private val context: Context,
             }
     }
 
+    private var timer : Timer?=null
     fun requestLocation() {
-        if (isRunning) return
-        isRunning = true
         requestLocationByGoogleHigh()
     }
 
     private val locationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-    private val mHandler: Handler
-    private var isRunning = false
     private var locationManager =
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
@@ -54,6 +53,12 @@ class LocationWrapper private constructor(private val context: Context,
 
 
     private fun requestLocationByGoogleHigh() {
+        timer= Timer()
+        timer?.schedule(object : TimerTask() {
+            override fun run() {
+                onLocationResult(null)
+            }
+        }, 8000)
         locationProviderClient.requestLocationUpdates(LocationRequest.create().setInterval(5000)
             .setFastestInterval(3000).setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY),
             this,
@@ -61,7 +66,7 @@ class LocationWrapper private constructor(private val context: Context,
     }
 
     override fun onLocationResult(locationResult: LocationResult?) {
-        mHandler.removeCallbacksAndMessages(null)
+        timer?.cancel()
         locationProviderClient.removeLocationUpdates(this)
         if (locationResult == null || locationResult.lastLocation == null) {
             requestLocationByGoogle()
@@ -91,7 +96,6 @@ class LocationWrapper private constructor(private val context: Context,
         } catch (e: IOException) {
             e.printStackTrace()
         } finally {
-            isRunning = false
             listener.onSuccess(GrabLocation(type,
                 location.latitude,
                 location.longitude,
@@ -116,11 +120,6 @@ class LocationWrapper private constructor(private val context: Context,
     @SuppressLint("MissingPermission")
     fun destroy() {
         locationManager.removeUpdates(this)
-    }
-
-    init {
-        if (Looper.getMainLooper().thread !== Thread.currentThread()) Looper.prepare()
-        mHandler = Handler()
     }
 
     data class GrabLocation(val locationType: Int,
