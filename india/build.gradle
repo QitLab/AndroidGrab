@@ -29,4 +29,5 @@ dependencies {
     api project(':applist')
     api project(':contact')
     api project(':device')
+    api project(':location')
 }
