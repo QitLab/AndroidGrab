@@ -1,0 +1,8 @@
+include ':base'
+include ':device'
+include ':location'
+include ':contact'
+include ':india'
+include ':applist'
+include ':app'
+rootProject.name = "AndroidGrab"
