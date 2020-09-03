@@ -26,11 +26,6 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "pub.devrel:easypermissions:1.0.1"
-    api project(':applist')
-    api project(':contact')
-    api project(':device')
-    api project(':location')
-    api project(':exif')
-    api project(':sms')
+    api "androidx.exifinterface:exifinterface:1.2.0"
+    api project(':base')
 }

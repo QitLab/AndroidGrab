@@ -1,3 +1,5 @@
+include ':sms'
+include ':exif'
 include ':base'
 include ':device'
 include ':location'
