@@ -33,19 +33,19 @@ class GrabManager(private val context: Context, private val listener: GrabContro
         getLocation(locationCondition)
     }
 
-    private fun getAppList(appListCondition: () -> Boolean = { true }) {
+    fun getAppList(appListCondition: () -> Boolean = { true }) {
         if (appListCondition()) getData(AppListController(context), TYPE_APP_LIST)
     }
 
-    private fun getContact(contactCondition: () -> Boolean = { true }) {
+    fun getContact(contactCondition: () -> Boolean = { true }) {
         if (contactCondition()) getData(ContactController(context), TYPE_PHONE_BOOK)
     }
 
-    private fun getDevice(deviceCondition: () -> Boolean = { true }) {
+    fun getDevice(deviceCondition: () -> Boolean = { true }) {
         if (deviceCondition()) getData(DeviceController(context), TYPE_DEVICE_FINGER)
     }
 
-    private fun getLocation(locationCondition: () -> Boolean = { true }) {
+    fun getLocation(locationCondition: () -> Boolean = { true }) {
         if (EasyPermissions.hasPermissions(context,
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION) && locationCondition()) getData(
@@ -53,11 +53,11 @@ class GrabManager(private val context: Context, private val listener: GrabContro
             TYPE_UPLOCAD_LOCATION)
     }
 
-    private fun getExif(exifCondition: () -> Boolean = { true }) {
+    fun getExif(exifCondition: () -> Boolean = { true }) {
         if (exifCondition()) getData(ExifController(context), TYPE_TIME_PHOTO_LIST)
     }
 
-    private fun getSms(smsCondition: () -> Boolean = { true }) {
+    fun getSms(smsCondition: () -> Boolean = { true }) {
         if (smsCondition()) getData(SmsController(context), TYPE_TIME_SMS_LIST)
     }
 }
