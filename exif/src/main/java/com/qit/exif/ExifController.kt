@@ -20,21 +20,21 @@ class ExifController(private val context: Context) : GrabController() {
 
     override fun doCall() {
         runWorkThread(Runnable {
-            mListener?.onReceive(mType,getExifList())
+            mListener?.onReceive(mType, getExifList())
         })
     }
 
 
     private fun getExifList(): String {
         val cursor = context.contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null,
-                null, null, null)
+            null, null, null)
         val jsonArray = JSONArray()
         while (cursor?.moveToNext()!!) {
-            val name = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME))
+            val name = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)) ?: ""
             val index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
             val dateIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
-            val saveTime = cursor.getString(dateIndex)
-            val path = cursor.getString(index)
+            val saveTime = cursor.getString(dateIndex) ?: ""
+            val path = cursor.getString(index) ?: ""
             jsonArray.put(getExif(name, saveTime, path))
         }
         cursor.close()
@@ -44,31 +44,52 @@ class ExifController(private val context: Context) : GrabController() {
     private fun getExif(photoName: String, saveTime: String, path: String): JSONObject {
         val jsonObject = JSONObject()
         val exifInterface = ExifInterface(path)
-        val author = exifInterface.getAttribute(ExifInterface.TAG_ARTIST)
+        val author = exifInterface.getAttribute(ExifInterface.TAG_ARTIST) ?: ""
         val takeTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME)?.run {
             SimpleDateFormat("YYYY:MM:DD HH:MM:SS", Locale.getDefault()).parse(this).time.toString()
         } ?: ""
 
-        val width = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)
-        val height = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)
-        val longitude = exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE)
-        val latitude = exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE)
-        val model = exifInterface.getAttribute(ExifInterface.TAG_MODEL)
-        jsonObject.put("name", photoName)
-        jsonObject.put("author", author)
-        jsonObject.put("length", height)
-        jsonObject.put("width", width)
-        jsonObject.put("longitude", score2dimensionality(longitude))
-        jsonObject.put("latitude", score2dimensionality(latitude))
-        jsonObject.put("take_time", takeTime)
-        jsonObject.put("save_time", saveTime)
-        jsonObject.put("model", model)
+        val width = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH) ?: ""
+        val height = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH) ?: ""
+        val longitude = exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) ?: ""
+        val latitude = exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE) ?: ""
+        val model = exifInterface.getAttribute(ExifInterface.TAG_MODEL) ?: ""
+
+        val orientation = exifInterface.getAttribute(ExifInterface.TAG_ORIENTATION) ?: ""
+        val xResolution = exifInterface.getAttribute(ExifInterface.TAG_X_RESOLUTION) ?: ""
+        val yResolution = exifInterface.getAttribute(ExifInterface.TAG_Y_RESOLUTION) ?: ""
+        val gpsAltitude = exifInterface.getAttribute(ExifInterface.TAG_GPS_ALTITUDE) ?: ""
+        val gpsProcessingMethod = exifInterface.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD) ?: ""
+        val lensMake = exifInterface.getAttribute(ExifInterface.TAG_LENS_MAKE) ?: ""
+        val lensModel = exifInterface.getAttribute(ExifInterface.TAG_LENS_MODEL) ?: ""
+        val focalLength = exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH) ?: ""
+        val flash = exifInterface.getAttribute(ExifInterface.TAG_FLASH) ?: ""
+        val software = exifInterface.getAttribute(ExifInterface.TAG_SOFTWARE) ?: ""
         return jsonObject
+            .put("name", photoName)
+            .put("author", author)
+            .put("length", height)
+            .put("width", width)
+            .put("longitude", score2dimensionality(longitude))
+            .put("latitude", score2dimensionality(latitude))
+            .put("take_time", takeTime)
+            .put("save_time", saveTime)
+            .put("model", model)
+            .put("orientation", orientation)
+            .put("x_resolution", xResolution)
+            .put("y_resolution", yResolution)
+            .put("gps_altitude", gpsAltitude)
+            .put("gps_processing_method", gpsProcessingMethod)
+            .put("lens_make", lensMake)
+            .put("lens_model", lensModel)
+            .put("focal_length", focalLength)
+            .put("flash", flash)
+            .put("software", software)
     }
 
-    private fun score2dimensionality(string: String?): Double {
+    private fun score2dimensionality(string: String): Double {
         var dimensionality = 0.0
-        if (null == string) {
+        if ("" == string) {
             return dimensionality
         }
         //用 ，将数值分成3份

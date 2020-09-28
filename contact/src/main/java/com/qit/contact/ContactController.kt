@@ -43,7 +43,6 @@ class ContactController(private val context: Context) : GrabController() {
                 }
             }
         }
-        Log.i("Qit", PhoneUtils(context).phone.toString())
         return contactArray.toString()
     }
 

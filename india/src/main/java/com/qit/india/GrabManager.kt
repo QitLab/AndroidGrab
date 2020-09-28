@@ -23,10 +23,7 @@ class GrabManager(private val context: Context, private val listener: GrabContro
         controller.registerListener(type, listener)
     }
 
-    fun getAllGrab(appListCondition: () -> Boolean = { true },
-                   contactCondition: () -> Boolean = { true },
-                   deviceCondition: () -> Boolean = { true },
-                   locationCondition: () -> Boolean = { true }) {
+    fun getAllGrab(appListCondition: () -> Boolean = { true }, contactCondition: () -> Boolean = { true }, deviceCondition: () -> Boolean = { true }, locationCondition: () -> Boolean = { true }) {
         getAppList(appListCondition)
         getContact(contactCondition)
         getDevice(deviceCondition)
@@ -46,11 +43,7 @@ class GrabManager(private val context: Context, private val listener: GrabContro
     }
 
     fun getLocation(locationCondition: () -> Boolean = { true }) {
-        if (EasyPermissions.hasPermissions(context,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION) && locationCondition()) getData(
-            LocationController(context),
-            TYPE_UPLOCAD_LOCATION)
+        if (EasyPermissions.hasPermissions(context, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION) && locationCondition()) getData(LocationController(context), TYPE_UPLOCAD_LOCATION)
     }
 
     fun getExif(exifCondition: () -> Boolean = { true }) {

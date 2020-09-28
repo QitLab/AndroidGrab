@@ -3,7 +3,6 @@ package com.qit.location
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.*
-import android.os.CountDownTimer
 import android.os.Looper
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
