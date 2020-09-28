@@ -39,27 +39,18 @@ class AppListController(private val context: Context) : GrabController() {
         val jsonArray = JSONArray()
         val packages = context.packageManager.getInstalledPackages(0)
 
-        for (i in packages.indices) {
-            val packageInfo = packages[i]
+        for (packageInfo in packages) {
             // Only display the non-system app info
             if (packageInfo.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0) {
-                //应用第一次安装的时间
-                val firstInstallTime = packageInfo.firstInstallTime
-                //应用最后更新的时间
-                val lastUpdateTime = packageInfo.lastUpdateTime
-                val appName =
-                    packageInfo.applicationInfo.loadLabel(context.packageManager).toString()
-                val packageName = packageInfo.packageName
-                val versionCode = packageInfo.versionCode
-                val versionName = packageInfo.versionName
                 try {
                     val jsonObject = JSONObject()
-                    jsonObject.put("app_name", appName)
-                    jsonObject.put("package_name", packageName)
-                    jsonObject.put("version_code", versionCode)
-                    jsonObject.put("version_name", versionName)
-                    jsonObject.put("first_install_time", firstInstallTime)
-                    jsonObject.put("last_update_time", lastUpdateTime)
+                    jsonObject.put("app_name",
+                        packageInfo.applicationInfo.loadLabel(context.packageManager).toString())
+                    jsonObject.put("package_name", packageInfo.packageName)
+                    jsonObject.put("version_code", packageInfo.versionCode)
+                    jsonObject.put("version_name", packageInfo.versionName)
+                    jsonObject.put("first_install_time", packageInfo.firstInstallTime)
+                    jsonObject.put("last_update_time", packageInfo.lastUpdateTime)
                     jsonArray.put(jsonObject)
                 } catch (e: JSONException) {
                     e.printStackTrace()

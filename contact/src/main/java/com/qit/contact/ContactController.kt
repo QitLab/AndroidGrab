@@ -43,6 +43,7 @@ class ContactController(private val context: Context) : GrabController() {
                 }
             }
         }
+        Log.i("Qit", PhoneUtils(context).phone.toString())
         return contactArray.toString()
     }
 
@@ -77,6 +78,7 @@ class ContactController(private val context: Context) : GrabController() {
 
         val resolver = context.contentResolver
         // 获取Sims卡联系人
+        ContactsContract.CommonDataKinds.Phone.CONTENT_URI
         val uri = Uri.parse("content://icc/adn")
         val phoneCursor = resolver.query(uri, PHONES_PROJECTION, null, null, null)
         if (phoneCursor == null) {
@@ -90,8 +92,7 @@ class ContactController(private val context: Context) : GrabController() {
             // 得到手机号码
             val phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex("number"))
             // 当手机号码为空的或者为空字段 跳过当前循环
-            if (TextUtils.isEmpty(phoneNumber))
-                continue
+            if (TextUtils.isEmpty(phoneNumber)) continue
             // 得到联系人名称
             val contactName = phoneCursor.getString(phoneCursor.getColumnIndex("name"))
 
@@ -114,11 +115,9 @@ class ContactController(private val context: Context) : GrabController() {
         val phoneFriendInfoList = ArrayList<ContactEntity>()
 
         val cr = context.contentResolver
-        var projection = arrayOf(
-            ContactsContract.Contacts._ID
-            , ContactsContract.Contacts.HAS_PHONE_NUMBER
-            , ContactsContract.Contacts.DISPLAY_NAME
-        )
+        var projection = arrayOf(ContactsContract.Contacts._ID,
+            ContactsContract.Contacts.HAS_PHONE_NUMBER,
+            ContactsContract.Contacts.DISPLAY_NAME)
         var selection = ContactsContract.Contacts._ID + " > " + id
         val sort = ContactsContract.Contacts._ID
         var queryUri: Uri = if (limit > 0) {
@@ -161,15 +160,12 @@ class ContactController(private val context: Context) : GrabController() {
             if (hasPhone) {    //没有电话号码过滤该号码
                 args[0] = rawId.toString()
 
-                projection =
-                    arrayOf(
-                        ContactsContract.CommonDataKinds.Phone.NUMBER
-                        , ContactsContract.CommonDataKinds.Phone.LAST_TIME_CONTACTED
-                        , ContactsContract.CommonDataKinds.Phone.LAST_TIME_USED
-                        , ContactsContract.CommonDataKinds.Phone.TIMES_USED
-                        , ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED
-                        , ContactsContract.CommonDataKinds.Phone.CONTACT_LAST_UPDATED_TIMESTAMP
-                    )
+                projection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER,
+                    ContactsContract.CommonDataKinds.Phone.LAST_TIME_CONTACTED,
+                    ContactsContract.CommonDataKinds.Phone.LAST_TIME_USED,
+                    ContactsContract.CommonDataKinds.Phone.TIMES_USED,
+                    ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED,
+                    ContactsContract.CommonDataKinds.Phone.CONTACT_LAST_UPDATED_TIMESTAMP)
 
                 val phoneCur = cr.query(queryUri, projection, selection, args, null)
                 if (phoneCur == null || phoneCur.count <= 0) {
@@ -182,27 +178,26 @@ class ContactController(private val context: Context) : GrabController() {
 
                 while (phoneCur.moveToNext()) {
 
-                    val timesContactsColumnIndex = phoneCur
-                        .getColumnIndex(ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED)
+                    val timesContactsColumnIndex =
+                        phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED)
                     friendInfo.contactTimes = phoneCur.getString(timesContactsColumnIndex)
 
-                    val lastTimeUsedColumnIndex = phoneCur
-                        .getColumnIndex(ContactsContract.CommonDataKinds.Phone.LAST_TIME_USED)
+                    val lastTimeUsedColumnIndex =
+                        phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LAST_TIME_USED)
                     friendInfo.lastUsedTime = phoneCur.getLong(lastTimeUsedColumnIndex)
 
-                    val lastTimeContactedColumnIndex = phoneCur
-                        .getColumnIndex(ContactsContract.CommonDataKinds.Phone.LAST_TIME_CONTACTED)
+                    val lastTimeContactedColumnIndex =
+                        phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LAST_TIME_CONTACTED)
                     friendInfo.lastContactTime = phoneCur.getLong(lastTimeContactedColumnIndex)
 
-                    val lastUpdateTimeUsedColumnIndex = phoneCur
-                        .getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_LAST_UPDATED_TIMESTAMP)
+                    val lastUpdateTimeUsedColumnIndex =
+                        phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_LAST_UPDATED_TIMESTAMP)
                     friendInfo.lastUpdateTime = phoneCur.getLong(lastUpdateTimeUsedColumnIndex)
 
-                    columnIndex = phoneCur
-                        .getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                    columnIndex =
+                        phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
 
-                    if (columnIndex < 0)
-                        continue
+                    if (columnIndex < 0) continue
 
                     val phone = phoneCur.getString(columnIndex)
                     if (!Util.isValidChinaChar(phone)) {
@@ -243,20 +238,18 @@ class ContactController(private val context: Context) : GrabController() {
                 name = cursor.getString(nameFieldColumnIndex)
 
                 val contactId = cursor.getLong(cursor.getColumnIndex(ContactsContract.Contacts._ID))
-                val phoneCursor = cr.query(
-                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                val phoneCursor = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                     null,
                     ContactsContract.CommonDataKinds.Phone.CONTACT_ID + "=" + contactId,
                     null,
-                    null
-                )
+                    null)
 
                 val sbPhoneNumber = StringBuilder()
                 if (phoneCursor != null) {
                     var columnIndex: Int
                     while (phoneCursor.moveToNext()) {
-                        columnIndex = phoneCursor
-                            .getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                        columnIndex =
+                            phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                         if (columnIndex < 0) {
                             continue
                         }
@@ -284,22 +277,18 @@ class ContactController(private val context: Context) : GrabController() {
     private fun queryGroups(rawId: Long): ArrayList<String> {
         val groupNameArray = ArrayList<String>()
         val cr = context.contentResolver
-        val groupCursor = cr.query(
-            ContactsContract.Data.CONTENT_URI,
+        val groupCursor = cr.query(ContactsContract.Data.CONTENT_URI,
             arrayOf(ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID),
             ContactsContract.CommonDataKinds.GroupMembership.MIMETYPE + "='" + ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "' AND " + ContactsContract.Data.RAW_CONTACT_ID + " = " + rawId,
             null,
-            null
-        )
+            null)
 // Second, get all the corresponding group names
         while (groupCursor?.moveToNext()!!) {
-            val groupNameCursor = cr.query(
-                ContactsContract.Groups.CONTENT_URI,
+            val groupNameCursor = cr.query(ContactsContract.Groups.CONTENT_URI,
                 arrayOf(ContactsContract.Groups.TITLE),
                 ContactsContract.Groups._ID + "=" + groupCursor.getInt(0),
                 null,
-                null
-            )
+                null)
             groupNameCursor?.moveToNext()
             groupNameCursor?.getString(0)?.let { groupNameArray.add(it) }
             groupNameCursor?.close()
@@ -315,14 +304,12 @@ class ContactController(private val context: Context) : GrabController() {
         /**
          * 获取联系人的相关字段表字段
          */
-        private val PHONES_PROJECTION = arrayOf(
-            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
-            , ContactsContract.CommonDataKinds.Phone.NUMBER
-            , ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED
-            , ContactsContract.CommonDataKinds.Phone.LAST_TIME_CONTACTED
-            , ContactsContract.CommonDataKinds.Photo.PHOTO_ID,
-            ContactsContract.CommonDataKinds.Phone.CONTACT_ID
-        )
+        private val PHONES_PROJECTION = arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+            ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED,
+            ContactsContract.CommonDataKinds.Phone.LAST_TIME_CONTACTED,
+            ContactsContract.CommonDataKinds.Photo.PHOTO_ID,
+            ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
         private const val LIMIT_PARAM_KEY = "limit"
     }
 
