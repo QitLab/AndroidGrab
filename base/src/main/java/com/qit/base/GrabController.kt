@@ -20,10 +20,7 @@ abstract class GrabController {
             val activeCount = executor.activeCount
             val completedCount = executor.completedTaskCount
             val poolSize = executor.poolSize
-            Log.d(
-                "SplashThread", "work thread size:" + size + " poolSize:" + poolSize +
-                        " activeCount:" + activeCount + " completedCount:" + completedCount
-            )
+            Log.d("SplashThread", "work thread size:" + size + " poolSize:" + poolSize + " activeCount:" + activeCount + " completedCount:" + completedCount)
         }
 
         workThreadPool.schedule(runnable, 0, TimeUnit.SECONDS)
@@ -45,7 +42,11 @@ abstract class GrabController {
         }
     }
 
+
     interface GrabListener {
+        /**
+         * value exif为路径，其余为json字符串
+         */
         fun onReceive(dataType: Int, value: String)
     }
 }
@@ -59,7 +60,7 @@ annotation class GrabType {
         const val TYPE_CALL_LOG = 4
         const val TYPE_UPLOCAD_LOCATION = 6
         const val TYPE_TIME_SMS_LIST = 7
-        const val TYPE_TIME_PHOTO_LIST = 8
+        const val TYPE_TIME_EXIF = 8
     }
 }
 

@@ -40,6 +40,7 @@ class ContactController(private val context: Context) : GrabController() {
                     contactArray.put(contactItem)
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    continue
                 }
             }
         }

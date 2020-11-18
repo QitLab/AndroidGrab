@@ -6,9 +6,6 @@ import com.qit.applist.AppListController
 import com.qit.base.GrabController
 import com.qit.base.GrabType.Companion.TYPE_APP_LIST
 import com.qit.base.GrabType.Companion.TYPE_DEVICE_FINGER
-import com.qit.base.GrabType.Companion.TYPE_PHONE_BOOK
-import com.qit.base.GrabType.Companion.TYPE_TIME_PHOTO_LIST
-import com.qit.base.GrabType.Companion.TYPE_TIME_SMS_LIST
 import com.qit.base.GrabType.Companion.TYPE_UPLOCAD_LOCATION
 import com.qit.contact.ContactController
 import com.qit.device.DeviceController

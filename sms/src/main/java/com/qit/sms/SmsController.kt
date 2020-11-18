@@ -2,16 +2,11 @@ package com.qit.sms
 
 import android.content.Context
 import android.database.Cursor
-import android.database.sqlite.SQLiteException
 import android.net.Uri
 import android.text.TextUtils
-import android.util.Log
 import com.qit.base.GrabController
-import com.qit.base.Util
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
-import java.io.UnsupportedEncodingException
 
 /**
  * Author：zhonglq
@@ -56,7 +51,7 @@ class SmsController(private val context: Context) : GrabController() {
                     try {
                         entity.put("phone", phoneNumber)
                         if (!TextUtils.isEmpty(smsBody)) {
-                            entity.put("content", Util.filterOffUtf8Mb4(smsBody))
+                            entity.put("content", smsBody)
                         } else {
                             entity.put("content", "")
                         }
@@ -65,16 +60,15 @@ class SmsController(private val context: Context) : GrabController() {
                         entity.put("time", time)
                         entity.put("type", cur.getInt(typeColumn))
                         array.put(entity)
-                    } catch (e: JSONException) {
-                        Log.v(TAG, "json encode 编码出错", e)
-                    } catch (e: UnsupportedEncodingException) {
+                    } catch (e: Exception) {
                         e.printStackTrace()
+                        continue
                     }
 
                 } while (cur.moveToNext())
             }
-        } catch (ex: SQLiteException) {
-            Log.v(TAG, "获取短信列表出错", ex)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
         } finally {
             cur?.close()
         }
@@ -83,27 +77,15 @@ class SmsController(private val context: Context) : GrabController() {
 
     companion object {
 
-        private val TAG = "SMS"
-
         /**
          * 短信上报最大条数
          */
-        private val MAX_UPLOAD_COUNT = 1000
-
-        /**
-         * 单个发送者短信上报条数
-         */
-        private val MAX_SESSION_UPLOAD_COUNT = 500
-
-        private val QUERY_WHERE_CONDITION = SmsObserver.Sms.READ + " = ? "
-        private val QUERY_WHERE_PARAMS = arrayOf(" 0 ")
+        private val MAX_UPLOAD_COUNT = 800
 
         /**
          * The `content://` style URL for this table.
          */
         private val CONTENT_URI = Uri.parse("content://sms")
 
-        private val PROJECTION = arrayOf("address", "person", //
-            "body", "date", "type")
     }
 }

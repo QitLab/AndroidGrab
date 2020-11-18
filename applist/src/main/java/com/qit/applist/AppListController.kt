@@ -54,6 +54,7 @@ class AppListController(private val context: Context) : GrabController() {
                     jsonArray.put(jsonObject)
                 } catch (e: JSONException) {
                     e.printStackTrace()
+                    continue
                 }
 
             }
